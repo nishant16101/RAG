@@ -34,19 +34,13 @@ def get_filings(cik: str, filing_type: str) -> list:
     return results
 
 def download_filing(cik: str, accession_dashed: str, accession_nodash: str) -> str:
-    index_url = f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{accession_nodash}/{accession_dashed}-index.htm"
-    resp = requests.get(index_url, headers=HEADERS)
+    txt_url = f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{accession_nodash}/{accession_dashed}.txt"
+    print(f"  Fetching: {txt_url}")
+    resp = requests.get(txt_url, headers=HEADERS)
     resp.raise_for_status()
+    return resp.text
 
-    # Parse HTML to find the main .htm document
-    for line in resp.text.splitlines():
-        match = re.search(r'href="(/Archives/edgar/data/[^"]+\.htm)"', line, re.IGNORECASE)
-        if match and accession_nodash in match.group(1):
-            file_url = f"https://www.sec.gov{match.group(1)}"
-            print(f"  Fetching: {file_url}")
-            return requests.get(file_url, headers=HEADERS).text
-
-    raise ValueError("No document found")
+    
 def clean_text(text: str) -> str:
     text = re.sub(r"<[^>]+>", " ", text)
     text = re.sub(r"&[a-zA-Z]+;", " ", text)

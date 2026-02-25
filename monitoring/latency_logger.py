@@ -2,7 +2,7 @@ from collections import deque
 import statistics
 _latencies = deque(maxlen=1000)
 
-def track_latency(latency_ms:float)
+def track_latency(latency_ms:float):
     _latencies.append(latency_ms)
 
 def get_stats()->dict:

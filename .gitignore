@@ -3,3 +3,5 @@ venv
 database/__pycache__
 retrieval/__pycache__
 llm/__pycache__
+app/__pycache__
+monitoring/__pycache__

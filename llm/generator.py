@@ -37,7 +37,7 @@ def answer(question: str, top_k: int = 3) -> dict:
     }
 
 if __name__ == "__main__":
-    result = answer("What are the major risk factors for Apple?")
+    result = answer("Who are the main competitors of TSLA?")
     print(f"\nAnswer:\n{result['answer']}")
     print(f"\nConfidence: {result['confidence']}")
     print("\nSources:")

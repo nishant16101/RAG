@@ -3,6 +3,8 @@ import os
 import time
 import argparse
 import re
+import html
+from bs4 import BeautifulSoup
 
 HEADERS = {"User-Agent": "financial-rag nishantkumbhar812@gmail.com"}
 BASE_URL = "https://data.sec.gov/submissions/CIK{}.json"
@@ -41,10 +43,45 @@ def download_filing(cik: str, accession_dashed: str, accession_nodash: str) -> s
     return resp.text
 
     
-def clean_text(text: str) -> str:
+def clean_text(raw_text: str) -> str:
+    """
+    Cleans SEC EDGAR filing text for semantic retrieval.
+    Removes HTML, XBRL, boilerplate, headers, and useless sections.
+    """
+
+    # 1️⃣ Decode HTML entities (&#8217; etc.)
+    text = html.unescape(raw_text)
+
+    # 2️⃣ Keep only main 10-K document (ignore exhibits)
+    documents = re.findall(r"<DOCUMENT>(.*?)</DOCUMENT>", text, re.DOTALL | re.IGNORECASE)
+    if documents:
+        # Usually first DOCUMENT block is main filing
+        text = documents[0]
+
+    # 3️⃣ Remove XBRL tags completely
     text = re.sub(r"<[^>]+>", " ", text)
-    text = re.sub(r"&[a-zA-Z]+;", " ", text)
+
+    # 4️⃣ Remove SEC header junk before ITEM 1
+    item_start = re.search(r"ITEM\s+1\.", text, re.IGNORECASE)
+    if item_start:
+        text = text[item_start.start():]
+
+    # 5️⃣ Remove excessive whitespace
     text = re.sub(r"\s+", " ", text)
+
+    # 6️⃣ Remove checkbox artifacts
+    text = re.sub(r"[☒☐]", " ", text)
+
+    # 7️⃣ Remove repetitive boilerplate phrases
+    boilerplate_patterns = [
+        r"Securities registered pursuant to Section 12\(b\).*?",
+        r"Indicate by check mark whether.*?",
+        r"The Nasdaq Stock Market LLC",
+    ]
+
+    for pattern in boilerplate_patterns:
+        text = re.sub(pattern, " ", text, flags=re.IGNORECASE)
+
     return text.strip()
 
 def scrape(ticker: str, filing_type: str = "10-K", max_filings: int = 3):

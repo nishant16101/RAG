@@ -6,8 +6,8 @@ class Settings(BaseSettings):
     faiss_index_path: str = "data/embeddings/faiss.index"
     chunks_path: str = "data/embeddings/chunks.pkl"
     top_k: int = 3
-    chunk_size: int = 150
-    chunk_overlap: int = 30
+    chunk_size: int = 1000
+    chunk_overlap: int = 200
 
     class Config:
         env_file = ".env"
